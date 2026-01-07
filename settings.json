@@ -4,10 +4,38 @@
       "Read",
       "Glob",
       "Grep",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch",
+      "Bash(dir:*)",
+      "Bash(ls:*)",
+      "Bash(where:*)",
+      "Bash(type:*)"
     ],
-    "deny": []
+    "deny": [
+      "Bash(del:*)",
+      "Bash(rm:*)",
+      "Bash(rmdir:*)",
+      "Bash(format:*)"
+    ]
   },
-  "hooks": {},
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo Welcome back! Type 'help' if you need assistance.",
+            "statusMessage": "Starting session"
+          }
+        ]
+      }
+    ]
+  },
+  "mcpServers": {
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/claude-mcp-memory"]
+    }
+  },
   "enabledPlugins": {}
 }
