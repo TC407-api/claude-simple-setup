@@ -17,7 +17,7 @@ if (-not $isAdmin) {
 }
 
 # Step 1: Check/Install Node.js
-Write-Host "[1/4] Checking for Node.js..." -ForegroundColor Yellow
+Write-Host "[1/5] Checking for Node.js..." -ForegroundColor Yellow
 $nodeVersion = node --version 2>$null
 if ($nodeVersion) {
     Write-Host "      Node.js found: $nodeVersion" -ForegroundColor Green
@@ -40,26 +40,52 @@ if ($nodeVersion) {
 
 # Step 2: Install Claude Code
 Write-Host ""
-Write-Host "[2/4] Installing Claude Code..." -ForegroundColor Yellow
+Write-Host "[2/5] Installing Claude Code..." -ForegroundColor Yellow
 npm install -g @anthropic-ai/claude-code 2>$null
 Write-Host "      Claude Code installed!" -ForegroundColor Green
 
-# Step 3: Create .claude folder and copy configs
+# Step 3: Create .claude folder structure
 Write-Host ""
-Write-Host "[3/4] Setting up your personal assistant..." -ForegroundColor Yellow
+Write-Host "[3/5] Setting up configuration..." -ForegroundColor Yellow
 $claudeDir = "$env:USERPROFILE\.claude"
+$hooksDir = "$claudeDir\hooks"
+
 if (-not (Test-Path $claudeDir)) {
     New-Item -Path $claudeDir -ItemType Directory -Force | Out-Null
 }
+if (-not (Test-Path $hooksDir)) {
+    New-Item -Path $hooksDir -ItemType Directory -Force | Out-Null
+}
 
+# Copy config files
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Copy-Item "$scriptDir\CLAUDE.md" "$claudeDir\CLAUDE.md" -Force
 Copy-Item "$scriptDir\settings.json" "$claudeDir\settings.json" -Force
-Write-Host "      Configuration complete!" -ForegroundColor Green
+Write-Host "      Configuration files copied!" -ForegroundColor Green
 
-# Step 4: Create desktop shortcut
+# Step 4: Install safety hooks
 Write-Host ""
-Write-Host "[4/4] Creating desktop shortcut..." -ForegroundColor Yellow
+Write-Host "[4/5] Installing safety guardrails..." -ForegroundColor Yellow
+if (Test-Path "$scriptDir\hooks") {
+    Copy-Item "$scriptDir\hooks\*" "$hooksDir\" -Force -Recurse
+    Write-Host "      Safety hooks installed!" -ForegroundColor Green
+    Write-Host "      - Write protection (blocks system files)" -ForegroundColor Gray
+    Write-Host "      - Friendly error messages" -ForegroundColor Gray
+    Write-Host "      - Backup reminders" -ForegroundColor Gray
+    Write-Host "      - Session logging" -ForegroundColor Gray
+} else {
+    Write-Host "      No hooks folder found, skipping..." -ForegroundColor Yellow
+}
+
+# Create logs directory
+$logsDir = "$env:USERPROFILE\Documents\ClaudeLogs"
+if (-not (Test-Path $logsDir)) {
+    New-Item -Path $logsDir -ItemType Directory -Force | Out-Null
+}
+
+# Step 5: Create desktop shortcut
+Write-Host ""
+Write-Host "[5/5] Creating desktop shortcut..." -ForegroundColor Yellow
 $desktopPath = [Environment]::GetFolderPath("Desktop")
 $shortcutPath = "$desktopPath\Claude Assistant.lnk"
 $WScriptShell = New-Object -ComObject WScript.Shell
@@ -79,7 +105,14 @@ Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Your personal Claude assistant is ready!" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "To start:" -ForegroundColor White
+Write-Host "SAFETY FEATURES INSTALLED:" -ForegroundColor Yellow
+Write-Host "  - System file protection" -ForegroundColor White
+Write-Host "  - Dangerous command blocking" -ForegroundColor White
+Write-Host "  - Friendly error explanations" -ForegroundColor White
+Write-Host "  - Backup reminders for important files" -ForegroundColor White
+Write-Host "  - Session logging (Documents\ClaudeLogs)" -ForegroundColor White
+Write-Host ""
+Write-Host "To start:" -ForegroundColor Cyan
 Write-Host "  - Double-click 'Claude Assistant' on your desktop" -ForegroundColor White
 Write-Host "  - OR open any terminal and type: claude" -ForegroundColor White
 Write-Host ""

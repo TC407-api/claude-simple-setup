@@ -9,23 +9,80 @@
       "Bash(dir:*)",
       "Bash(ls:*)",
       "Bash(where:*)",
-      "Bash(type:*)"
+      "Bash(type:*)",
+      "Bash(echo:*)"
     ],
     "deny": [
-      "Bash(del:*)",
-      "Bash(rm:*)",
-      "Bash(rmdir:*)",
-      "Bash(format:*)"
+      "Bash(del /s:*)",
+      "Bash(del /q:*)",
+      "Bash(rm -rf:*)",
+      "Bash(rmdir /s:*)",
+      "Bash(format:*)",
+      "Bash(diskpart:*)",
+      "Bash(reg delete:*)",
+      "Bash(shutdown:*)",
+      "Bash(taskkill /f:*)"
     ]
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\hooks\\safe-write-guard.ps1\"",
+            "statusMessage": "Safety check"
+          },
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\hooks\\backup-reminder.ps1\"",
+            "statusMessage": "Backup reminder"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\hooks\\friendly-error.ps1\"",
+            "statusMessage": "Checking result"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "echo Welcome back! Type 'help' if you need assistance.",
+            "command": "powershell -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\hooks\\session-log.ps1\" -Event start",
             "statusMessage": "Starting session"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\hooks\\session-log.ps1\" -Event end",
+            "statusMessage": "Session complete"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\hooks\\session-log.ps1\" -Event task_complete",
+            "statusMessage": "Logging completion"
           }
         ]
       }
@@ -34,7 +91,7 @@
   "mcpServers": {
     "memory": {
       "command": "npx",
-      "args": ["-y", "@anthropic-ai/claude-mcp-memory"]
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
     }
   },
   "enabledPlugins": {}
