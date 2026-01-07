@@ -4,8 +4,7 @@
       "Read",
       "Glob",
       "Grep",
-      "WebSearch",
-      "WebFetch"
+      "WebSearch"
     ],
     "deny": []
   },
